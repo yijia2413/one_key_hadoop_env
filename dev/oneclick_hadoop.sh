@@ -13,10 +13,19 @@ hbase_url=http://apache.fayea.com/hbase/stable/hbase-1.0.1-bin.tar.gz
 user=$(whoami)
 
 echo "installing java and ssh..."
-sudo apt-get -y update > /dev/null
-sudo apt-get -y upgrade > /dev/null
-sudo apt-get -y install default-jdk default-jre ssh openssh-server rsync > /dev/null
+if [ $(grep -c "Ubuntu" /etc/issue) -eq 1 ]
+then
+	sudo apt-get -y update > /dev/null
+	sudo apt-get -y upgrade > /dev/null
+	sudo apt-get -y install default-jdk default-jre ssh openssh-server rsync > /dev/null 2>&1
+elif [ $(grep -c "Centos" /etc/issue) -eq 1 ]
+then
+	yum update -y > /dev/null 2>&1
+	yum upgrade -y > /dev/null 2>&1
+	yum install java-1.7.0-openjdk* rsync openssh-server -y > /dev/null 2>&1
+fi
 
+echo
 echo "install java and ssh finished, now installing hadoop,downloading may take some time..."
 
 #hadoop
@@ -29,10 +38,10 @@ else
 	wget $hadoop_url > /dev/null
 fi
 
-if [ -d "/usr/local/hadoop"]
+if [ -d "/usr/local/hadoop" ]
 then
 	echo "/usr/local/hadoop/ exists, move it now..."
-	mv /usr/local/hadoop /usr/local/hadoop_bak
+	sudo mv /usr/local/hadoop /usr/local/hadoop_bak
 else
 	echo "installing..."
 fi
@@ -42,6 +51,7 @@ sudo mv hadoop-2.6.0 /usr/local/hadoop
 sudo chmod -R 775 /usr/local/hadoop
 sudo chown -R $user:$user /usr/local/hadoop
 
+echo
 echo "hadoop finished, now installing hbase..."
 #hbase
 if test -f hbase-1.0.1-bin.tar.gz
@@ -54,7 +64,7 @@ fi
 if [ -d "/usr/local/hbase" ] 
 then
 	echo "/usr/local/hbase/ exists, move it now..."
-	mv /usr/local/hbase /usr/local/hbase_bak
+	sudo mv /usr/local/hbase /usr/local/hbase_bak
 else
 	echo "installing..."
 fi
@@ -64,6 +74,7 @@ sudo mv hbase-1.0.1 /usr/local/hbase
 sudo chmod -R 755 /usr/local/hbase
 sudo chown -R $user:$user /usr/local/hbase
 
+echo
 echo "now add ssh key gen.."
 #ssh
 if test -f /home/$user/.ssh/id_rsa
@@ -75,6 +86,7 @@ fi
 
 cat /home/$user/.ssh/id_rsa.pub >> /home/$user/.ssh/authorized_keys
 
+echo
 echo "now configuring..."
 
 #config hadoop
@@ -145,4 +157,9 @@ sudo mkdir -p /home/$user/fuckhadoop/{nameDir,dataDir,tmpDataDir,zookeeper}
 source /etc/profile
 
 echo "now all work done! enjoy.....^_^"
-echo "try the following command:\n\nsource /etc/profile\nhdfs namenode -format\nstart-all.sh\nstart-hbase.sh\n"
+echo "try the following 4 commands:"
+echo
+echo "source /etc/profile"
+echo "hdfs namenode -format"
+echo "start-all.sh"
+echo "start-hbase.sh"
