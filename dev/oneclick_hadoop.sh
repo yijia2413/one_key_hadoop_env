@@ -35,7 +35,7 @@ if test -f hadoop-2.6.0.tar.gz
 then
 	echo "hadoop source file exists, copying..."
 else
-	wget $hadoop_url > /dev/null
+	wget $hadoop_url > /dev/null 2>&1
 fi
 
 if [ -d "/usr/local/hadoop" ]
@@ -43,13 +43,17 @@ then
 	echo "/usr/local/hadoop/ exists, move it now..."
 	sudo mv /usr/local/hadoop /usr/local/hadoop_bak
 else
-	echo "installing..."
+	echo "installing hadoop..."
 fi
 
 tar xvzf hadoop-2.6.0.tar.gz > /dev/null 
 sudo mv hadoop-2.6.0 /usr/local/hadoop
 sudo chmod -R 775 /usr/local/hadoop
 sudo chown -R $user:$user /usr/local/hadoop
+
+#prepare hadoop tmp dir
+mkdir -p /usr/local/hadoop/tmp/dfs/{namenode,datanode}
+mkdir -p /usr/local/hadoop/tmp/{hbase,zookeeper}
 
 echo
 echo "hadoop finished, now installing hbase..."
@@ -58,7 +62,7 @@ if test -f hbase-1.0.1-bin.tar.gz
 then
 	echo "hbase source file exists, copying..."
 else
-	wget $hbase_url > /dev/null
+	wget $hbase_url > /dev/null 2>&1
 fi
 
 if [ -d "/usr/local/hbase" ] 
@@ -66,7 +70,7 @@ then
 	echo "/usr/local/hbase/ exists, move it now..."
 	sudo mv /usr/local/hbase /usr/local/hbase_bak
 else
-	echo "installing..."
+	echo "installing hbase..."
 fi
 
 tar xvzf hbase-1.0.1-bin.tar.gz > /dev/null
@@ -91,6 +95,9 @@ echo "now configuring..."
 
 #config hadoop
 #core-site.xml
+#tmp dir
+sed -i '/<conf/a \\t<property>\n\t\t<name>hadoop.tmp.dir</name>\n\t\t<value>/usr/local/hadoop/tmp</value>\n\t</property>\n' /usr/local/hadoop/etc/hadoop/core-site.xml
+
 sed -i '/<conf/a \\t<property>\n\t\t<name>fs.defaultFS</name>\n\t\t<value>hdfs://localhost:9000</value>\n\t</property>\n' /usr/local/hadoop/etc/hadoop/core-site.xml
 
 #hadoop-env.sh
@@ -99,6 +106,11 @@ sed -i 's/^export\ JAVA_HOME/#export\ JAVA_HOME/' /usr/local/hadoop/etc/hadoop/h
 sed -i '/export\ JAVA_HOME/a export\ export\ HADOOP_PREFIX=\/usr\/local\/hadoop' /usr/local/hadoop/etc/hadoop/hadoop-env.sh
 
 #hdfs-site.xml
+
+sed -i '/<conf/a \\t<property>\n\t\t<name>dfs.namenode.name.dir</name>\n\t\t<value>/usr/local/hadoop/tmp/dfs/namenode</value>\n\t</property>\n'  /usr/local/hadoop/etc/hadoop/hdfs-site.xml 
+
+sed -i '/<conf/a \\t<property>\n\t\t<name>dfs.datanode.data.dir</name>\n\t\t<value>/usr/local/hadoop/tmp/dfs/datanode</value>\n\t</property>\n'  /usr/local/hadoop/etc/hadoop/hdfs-site.xml 
+
 sed -i '/<conf/a \\t<property>\n\t\t<name>dfs.replication</name>\n\t\t<value>1</value>\n\t</property>\n'  /usr/local/hadoop/etc/hadoop/hdfs-site.xml 
 
 #mapred-site.xml
@@ -120,9 +132,14 @@ sed -i '/<conf/a \\t<property>\n\t\t<name>yarn.nodemanager.aux-services</name>\n
 
 #hbase-config
 #hbase-site.xml
+sed -i '/<conf/a \\t<property>\n\t\t<name>hbase.zookeeper.property.dataDir</name>\n\t\t<value>/usr/local/hadoop/tmp/zookeeper</value>\n\t</property>\n' /usr/local/hbase/conf/hbase-site.xml
+
+sed -i '/<conf/a \\t<property>\n\t\t<name>hbase.zookeeper.quorum</name>\n\t\t<value>localhost</value>\n\t</property>\n' /usr/local/hbase/conf/hbase-site.xml
+
+sed -i '/<conf/a \\t<property>\n\t\t<name>hbase.tmp.dir</name>\n\t\t<value>/usr/local/hadoop/tmp/hbase</value>\n\t</property>\n' /usr/local/hbase/conf/hbase-site.xml
+
 sed -i '/<conf/a \\t<property>\n\t\t<name>hbase.cluster.distributed</name>\n\t\t<value>true</value>\n\t</property>\n' /usr/local/hbase/conf/hbase-site.xml
 
-#sed -i '/<conf/a \\t<property>\n\t\t<name>hbase.zookeeper.property.dataDir</name>\n\t\t<value>/home/$user/fuckhadoop/zookeeper</value>\n\t</property>\n' /usr/local/hbase/conf/hbase-site.xml
 sed -i '/<conf/a \\t<property>\n\t\t<name>dfs.replication</name>\n\t\t<value>1</value>\n\t</property>\n' /usr/local/hbase/conf/hbase-site.xml
 
 sed -i '/<conf/a \\t<property>\n\t\t<name>hbase.rootdir</name>\n\t\t<value>hdfs://localhost:9000/hbase</value>\n\t</property>\n' /usr/local/hbase/conf/hbase-site.xml
@@ -153,7 +170,6 @@ export JRE_HOME=${JAVA_HOME}/jre \
 export CLASSPATH=.${JAVA_HOME}/lib:${JRE_HOME}/lib:${HADOOP_HOME}/share/hadoop/common/lib:${HBASE_HOME}/lib \
 ' /etc/profile
 
-sudo mkdir -p /home/$user/fuckhadoop/{nameDir,dataDir,tmpDataDir,zookeeper}
 source /etc/profile
 
 echo "now all work done! enjoy.....^_^"
