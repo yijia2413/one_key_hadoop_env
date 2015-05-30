@@ -9,6 +9,20 @@
 set -o nounset
 set -o errexit
 
+#set sed for linux or mac
+darwin=false;
+case "`uname`" in
+  Darwin*) darwin=true ;;
+esac
+
+sedi="sed -i"
+
+#if $darwin; then
+#  sedi="/usr/bin/sed -i ''"
+#else
+#  sedi="sed -i"
+#fi
+
 #hadoop_url=http://mirror.sdunix.com/apache/hadoop/common/hadoop-2.7.0/hadoop-2.7.0.tar.gz
 hadoop_url=http://apache.dataguru.cn/hadoop/common/hadoop-2.6.0/hadoop-2.6.0.tar.gz
 #hbase_url=http://mirror.symnds.com/software/Apache/hbase/0.98.12.1/hbase-0.98.12.1-hadoop2-bin.tar.gz
@@ -31,9 +45,12 @@ then
 	yum install java-1.7.0-openjdk* rsync openssh-server -y 2>&1
 elif [ $(uname -i | grep Mac | wc -l) -eq 1 ]
 then
-	ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" 2>&1
-	brew cask install caskroom/versions/java7 2>&1
-	brew install wget
+	echo "hello"
+#	brew install gnu-sed
+#	ln -s /usr/local/bin/gsed /usr/local/bin/sed
+#	ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" >/dev/null 2>&1
+#	brew cask install caskroom/versions/java7 > /dev/null 2>&1
+#	brew install wget > /dev/null 2>&a
 fi
 
 echo
@@ -97,9 +114,9 @@ sudo mv hbase-1.0.1 /usr/local/hbase
 sudo chmod -R 755 /usr/local/hbase
 if [ $(uname -i | grep Mac | wc -l) -eq 1 ]
 then
-	sudo chown -R $user:$user /usr/local/hbase
-else
 	sudo chown -R $user:staff /usr/local/hbase
+else
+	sudo chown -R $user:$user /usr/local/hbase
 fi
 
 echo
@@ -120,27 +137,29 @@ echo "now configuring..."
 #config hadoop
 #core-site.xml
 #tmp dir
-sed -i '/<conf/a \\t<property>\n\t\t<name>hadoop.tmp.dir</name>\n\t\t<value>/usr/local/hadoop/tmp</value>\n\t</property>\n' /usr/local/hadoop/etc/hadoop/core-site.xml
+$sedi '/<conf/a \\t<property>\n\t\t<name>hadoop.tmp.dir</name>\n\t\t<value>/usr/local/hadoop/tmp</value>\n\t</property>\n' /usr/local/hadoop/etc/hadoop/core-site.xml
 
-sed -i '/<conf/a \\t<property>\n\t\t<name>fs.defaultFS</name>\n\t\t<value>hdfs://localhost:9000</value>\n\t</property>\n' /usr/local/hadoop/etc/hadoop/core-site.xml
+$sedi '/<conf/a \\t<property>\n\t\t<name>fs.defaultFS</name>\n\t\t<value>hdfs://localhost:9000</value>\n\t</property>\n' /usr/local/hadoop/etc/hadoop/core-site.xml
 
 #hadoop-env.sh
-if [ $(uname -i | grep Mac | wc -l) -eq 1 ]
+if $darwin
 then
-	sed -i 's/^export\ JAVA_HOME/#export\ JAVA_HOME/' /usr/local/hadoop/etc/hadoop/hadoop-env.sh && sed -i '/export\ JAVA_HOME/a export\ JAVA_HOME=\`/usr\/libexec\/java_home`' /usr/local/hadoop/etc/hadoop/hadoop-env.sh
+	$sedi 's/^export\ JAVA_HOME/#export\ JAVA_HOME/' /usr/local/hadoop/etc/hadoop/hadoop-env.sh
+	$sedi '/export\ JAVA_HOME/a export\ JAVA_HOME=\`/usr\/libexec\/java_home`' /usr/local/hadoop/etc/hadoop/hadoop-env.sh
 else
-	sed -i 's/^export\ JAVA_HOME/#export\ JAVA_HOME/' /usr/local/hadoop/etc/hadoop/hadoop-env.sh && sed -i '/export\ JAVA_HOME/a export\ JAVA_HOME=\/usr\/lib\/jvm\/java-7-openjdk-amd64' /usr/local/hadoop/etc/hadoop/hadoop-env.sh
+	$sedi 's/^export\ JAVA_HOME/#export\ JAVA_HOME/' /usr/local/hadoop/etc/hadoop/hadoop-env.sh 
+	$sedi '/export\ JAVA_HOME/a export\ JAVA_HOME=\/usr\/lib\/jvm\/java-7-openjdk-amd64' /usr/local/hadoop/etc/hadoop/hadoop-env.sh
 fi
 
-sed -i '/export\ JAVA_HOME/a export\ export\ HADOOP_PREFIX=\/usr\/local\/hadoop' /usr/local/hadoop/etc/hadoop/hadoop-env.sh
+$sedi '/export\ JAVA_HOME/a export\ export\ HADOOP_PREFIX=\/usr\/local\/hadoop' /usr/local/hadoop/etc/hadoop/hadoop-env.sh
 
 #hdfs-site.xml
 
-sed -i '/<conf/a \\t<property>\n\t\t<name>dfs.namenode.name.dir</name>\n\t\t<value>/usr/local/hadoop/tmp/dfs/namenode</value>\n\t</property>\n'  /usr/local/hadoop/etc/hadoop/hdfs-site.xml 
+$sedi '/<conf/a \\t<property>\n\t\t<name>dfs.namenode.name.dir</name>\n\t\t<value>/usr/local/hadoop/tmp/dfs/namenode</value>\n\t</property>\n'  /usr/local/hadoop/etc/hadoop/hdfs-site.xml 
 
-sed -i '/<conf/a \\t<property>\n\t\t<name>dfs.datanode.data.dir</name>\n\t\t<value>/usr/local/hadoop/tmp/dfs/datanode</value>\n\t</property>\n'  /usr/local/hadoop/etc/hadoop/hdfs-site.xml 
+$sedi '/<conf/a \\t<property>\n\t\t<name>dfs.datanode.data.dir</name>\n\t\t<value>/usr/local/hadoop/tmp/dfs/datanode</value>\n\t</property>\n'  /usr/local/hadoop/etc/hadoop/hdfs-site.xml 
 
-sed -i '/<conf/a \\t<property>\n\t\t<name>dfs.replication</name>\n\t\t<value>1</value>\n\t</property>\n'  /usr/local/hadoop/etc/hadoop/hdfs-site.xml 
+$sedi '/<conf/a \\t<property>\n\t\t<name>dfs.replication</name>\n\t\t<value>1</value>\n\t</property>\n'  /usr/local/hadoop/etc/hadoop/hdfs-site.xml 
 
 #mapred-site.xml
 cat <<EOF >> /usr/local/hadoop/etc/hadoop/mapred-site.xml
@@ -156,42 +175,44 @@ cat <<EOF >> /usr/local/hadoop/etc/hadoop/mapred-site.xml
 EOF
 
 #yarn-site.xml
-sed -i '/<conf/a \\t<property>\n\t\t<name>yarn.nodemanager.aux-services</name>\n\t\t<value>mapreduce_shuffle</value>\n\t</property>\n' /usr/local/hadoop/etc/hadoop/yarn-site.xml
+$sedi '/<conf/a \\t<property>\n\t\t<name>yarn.nodemanager.aux-services</name>\n\t\t<value>mapreduce_shuffle</value>\n\t</property>\n' /usr/local/hadoop/etc/hadoop/yarn-site.xml
 
 
 #hbase-config
 #hbase-site.xml
-sed -i '/<conf/a \\t<property>\n\t\t<name>hbase.zookeeper.property.dataDir</name>\n\t\t<value>/usr/local/hadoop/tmp/zookeeper</value>\n\t</property>\n' /usr/local/hbase/conf/hbase-site.xml
+$sedi '/<conf/a \\t<property>\n\t\t<name>hbase.zookeeper.property.dataDir</name>\n\t\t<value>/usr/local/hadoop/tmp/zookeeper</value>\n\t</property>\n' /usr/local/hbase/conf/hbase-site.xml
 
-sed -i '/<conf/a \\t<property>\n\t\t<name>hbase.zookeeper.quorum</name>\n\t\t<value>localhost</value>\n\t</property>\n' /usr/local/hbase/conf/hbase-site.xml
+$sedi '/<conf/a \\t<property>\n\t\t<name>hbase.zookeeper.quorum</name>\n\t\t<value>localhost</value>\n\t</property>\n' /usr/local/hbase/conf/hbase-site.xml
 
-sed -i '/<conf/a \\t<property>\n\t\t<name>hbase.tmp.dir</name>\n\t\t<value>/usr/local/hadoop/tmp/hbase</value>\n\t</property>\n' /usr/local/hbase/conf/hbase-site.xml
+$sedi '/<conf/a \\t<property>\n\t\t<name>hbase.tmp.dir</name>\n\t\t<value>/usr/local/hadoop/tmp/hbase</value>\n\t</property>\n' /usr/local/hbase/conf/hbase-site.xml
 
-sed -i '/<conf/a \\t<property>\n\t\t<name>hbase.cluster.distributed</name>\n\t\t<value>true</value>\n\t</property>\n' /usr/local/hbase/conf/hbase-site.xml
+$sedi '/<conf/a \\t<property>\n\t\t<name>hbase.cluster.distributed</name>\n\t\t<value>true</value>\n\t</property>\n' /usr/local/hbase/conf/hbase-site.xml
 
-sed -i '/<conf/a \\t<property>\n\t\t<name>dfs.replication</name>\n\t\t<value>1</value>\n\t</property>\n' /usr/local/hbase/conf/hbase-site.xml
+$sedi '/<conf/a \\t<property>\n\t\t<name>dfs.replication</name>\n\t\t<value>1</value>\n\t</property>\n' /usr/local/hbase/conf/hbase-site.xml
 
-sed -i '/<conf/a \\t<property>\n\t\t<name>hbase.rootdir</name>\n\t\t<value>hdfs://localhost:9000/hbase</value>\n\t</property>\n' /usr/local/hbase/conf/hbase-site.xml
+$sedi '/<conf/a \\t<property>\n\t\t<name>hbase.rootdir</name>\n\t\t<value>hdfs://localhost:9000/hbase</value>\n\t</property>\n' /usr/local/hbase/conf/hbase-site.xml
 
 #hbase-env.sh
 if [ $(uname -i | grep Mac | wc -l ) -eq 1 ]
 then
-	sed -i 's/^export\ JAVA_HOME/#export\ JAVA_HOME/' /usr/local/hbase/conf/hbase-env.sh && sed -i '/export\ JAVA_HOME/a export\ JAVA_HOME=\/usr\/lib\/jvm\/java-7-openjdk-amd64' /usr/local/hbase/conf/hbase-env.sh
+	$sedi 's/^export\ JAVA_HOME/#export\ JAVA_HOME/' /usr/local/hbase/conf/hbase-env.sh 
+	$sedi '/export\ JAVA_HOME/a export\ JAVA_HOME=\`/usr\/libexec\/java_home`' /usr/local/hbase/conf/hbase-env.sh
 else
-	sed -i 's/^export\ JAVA_HOME/#export\ JAVA_HOME/' /usr/local/hbase/conf/hbase-env.sh && sed -i '/export\ JAVA_HOME/a export\ JAVA_HOME=\`/usr\/libexec\/java_home`' /usr/local/hbase/conf/hbase-env.sh
+	$sedi 's/^export\ JAVA_HOME/#export\ JAVA_HOME/' /usr/local/hbase/conf/hbase-env.sh 
+	$sedi '/export\ JAVA_HOME/a export\ JAVA_HOME=\/usr\/lib\/jvm\/java-7-openjdk-amd64' /usr/local/hbase/conf/hbase-env.sh
 fi
 
-#sed -i '/export\ HBASE_CLASSPATH/a export\ HBASE_CLASSPATH=\/usr\/local\/hbase\/conf' /usr/local/hbase/conf/hbase-env.sh
+#$sedi '/export\ HBASE_CLASSPATH/a export\ HBASE_CLASSPATH=\/usr\/local\/hbase\/conf' /usr/local/hbase/conf/hbase-env.sh
 
 #use zookeeper
-sed -i '/export\ HBASE_MANAGES_ZK/a export\ HBASE_MANAGES_ZK=true' /usr/local/hbase/conf/hbase-env.sh
+$sedi '/export\ HBASE_MANAGES_ZK/a export\ HBASE_MANAGES_ZK=true' /usr/local/hbase/conf/hbase-env.sh
 
 
 #profile
 #HADOOP VARIABLES START
 if [ $(uname -i | grep Mac | wc -l) -eq 1 ]
 then
-	sudo sed -i '$a export JAVA_HOME=`/usr/libexec/java_home` \
+	sudo $sedi '$a export JAVA_HOME=`/usr/libexec/java_home` \
 export JRE_HOME=$JAVA_HOME/jre \
 export CLASSPATH=.:$JAVA_HOME/lib:$JRE_HOME/lib:$CLASSPATH  \
 export PATH=.:$JAVA_HOME/bin:$JRE_HOME/bin:$PATH \
@@ -209,7 +230,7 @@ export CLASSPATH=$PATH:$HBASE_HOME/lib \
 ' ~/.bashrc
 
 else
-	sudo sed -i '$a export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64 \
+	sudo $sedi '$a export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64 \
 export HADOOP_HOME=/usr/local/hadoop \
 export PATH=$PATH:$JAVA_HOME/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin \
 export HADOOP_MAPRED_HOME=$HADOOP_HOME \
