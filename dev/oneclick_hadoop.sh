@@ -50,7 +50,7 @@ then
 	yum update -y 2>&1
 	yum upgrade -y 2>&1
 	yum install java-1.7.0-openjdk* rsync openssh-server -y 2>&1
-elif [ $(uname -i | grep Mac | wc -l) -eq 1 ]
+elif $darwin
 then
 	if [ $(brew -v | grep Homebrew | wc -l) -eq 1 ]
 	then
@@ -108,7 +108,7 @@ fi
 tar xvzf $hadoop_tar > /dev/null 
 sudo mv $hadoop_version /usr/local/hadoop
 sudo chmod -R 775 /usr/local/hadoop
-if [ $(uname -i | grep Mac | wc -l) -eq 1 ]
+if $darwin
 then
 	sudo chown -R $user:staff /usr/local/hadoop
 else
@@ -141,7 +141,7 @@ fi
 tar xvzf $hbase_tar > /dev/null
 sudo mv $hbase_version /usr/local/hbase
 sudo chmod -R 755 /usr/local/hbase
-if [ $(uname -i | grep Mac | wc -l) -eq 1 ]
+if $darwin
 then
 	sudo chown -R $user:staff /usr/local/hbase
 else
@@ -222,7 +222,7 @@ $sedi '/<conf/a \\t<property>\n\t\t<name>dfs.replication</name>\n\t\t<value>1</v
 $sedi '/<conf/a \\t<property>\n\t\t<name>hbase.rootdir</name>\n\t\t<value>hdfs://localhost:9000/hbase</value>\n\t</property>\n' /usr/local/hbase/conf/hbase-site.xml
 
 #hbase-env.sh
-if [ $(uname -i | grep Mac | wc -l ) -eq 1 ]
+if $darwin
 then
 	$sedi 's/^export\ JAVA_HOME/#export\ JAVA_HOME/' /usr/local/hbase/conf/hbase-env.sh 
 	$sedi '/export\ JAVA_HOME/a export\ JAVA_HOME=\`/usr\/libexec\/java_home`' /usr/local/hbase/conf/hbase-env.sh
@@ -239,7 +239,7 @@ $sedi '/export\ HBASE_MANAGES_ZK/a export\ HBASE_MANAGES_ZK=true' /usr/local/hba
 
 #profile
 #HADOOP VARIABLES START
-if [ $(uname -i | grep Mac | wc -l) -eq 1 ]
+if $darwin
 then
 	sudo $sedi '$a export JAVA_HOME=`/usr/libexec/java_home` \
 export JRE_HOME=$JAVA_HOME/jre \
