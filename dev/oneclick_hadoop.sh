@@ -33,6 +33,7 @@ hbase_url=http://apache.fayea.com/hbase/stable/hbase-1.0.1-bin.tar.gz
 user=$(whoami)
 
 echo "installing java and ssh..."
+
 if [ $(grep -c "Ubuntu" /etc/issue) -eq 1 ]
 then
 	sudo apt-get -y update  2>&1
@@ -45,12 +46,36 @@ then
 	yum install java-1.7.0-openjdk* rsync openssh-server -y 2>&1
 elif [ $(uname -i | grep Mac | wc -l) -eq 1 ]
 then
-	echo "hello"
-#	brew install gnu-sed
-#	ln -s /usr/local/bin/gsed /usr/local/bin/sed
-#	ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" >/dev/null 2>&1
-#	brew cask install caskroom/versions/java7 > /dev/null 2>&1
-#	brew install wget > /dev/null 2>&a
+	if [ $(brew -v | grep Homebrew | wc -l) -eq 1 ]
+	then
+		echo "brew installed"
+	else
+		ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" 2>&1
+	fi
+
+	if [ $(which java | grep jdk | wc -l) -eq 1 ]
+	then
+		echo "java installed"
+	else
+		echo "installing java, please wait..."
+		brew cask install caskroom/versions/java7 > /dev/null 2>&1
+	fi
+	
+	if [ $(wget -V | head -1 | grep Wget | wc -l) -eq 1 ]
+	then
+		echo "wget installed"
+	else
+		echo "installing wget"
+		brew install wget 2>&1
+	fi
+
+	if [ $(sed --version | head -1 | grep GNU | wc -l) -eq 1 ]
+	then
+		echo "GNU sed installed"
+	else
+		brew install gnu-sed
+		ln -s /usr/local/bin/gsed /usr/local/bin/sed
+	fi
 fi
 
 echo
@@ -249,7 +274,8 @@ fi
 echo "now all work done! enjoy.....^_^"
 echo "try the following 4 commands:"
 echo
-echo "1. source /etc/profile"
+echo "1. source /etc/profile (ubuntu/centos)"
+echo "1. source ~/.bashrc (mac os)"
 echo "2. hdfs namenode -format"
 echo "3. start-all.sh"
 echo "4. start-hbase.sh"
