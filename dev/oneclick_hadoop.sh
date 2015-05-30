@@ -30,6 +30,7 @@ elif [ $(uname -i | grep Mac | wc -l) -eq 1 ]
 then
 	ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" 2>&1
 	brew cask install caskroom/versions/java7 2>&1
+	brew install wget
 fi
 
 echo
