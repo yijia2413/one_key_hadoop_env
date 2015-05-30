@@ -17,17 +17,23 @@ esac
 
 sedi="sed -i"
 
+#set your own hadoop and hbase here~
+hadoop_version=hadoop-2.6.0
+hadoop_tar=hadoop-2.6.0.tar.gz
+hadoop_url=http://apache.dataguru.cn/hadoop/common/hadoop-2.6.0/hadoop-2.6.0.tar.gz
+hbase_version=hbase-1.0.1
+hbase_tar=hbase-1.0.1-bin.tar.gz
+hbase_url=http://apache.fayea.com/hbase/stable/hbase-1.0.1-bin.tar.gz
+
 #if $darwin; then
 #  sedi="/usr/bin/sed -i ''"
 #else
 #  sedi="sed -i"
 #fi
 
-#hadoop_url=http://mirror.sdunix.com/apache/hadoop/common/hadoop-2.7.0/hadoop-2.7.0.tar.gz
-hadoop_url=http://apache.dataguru.cn/hadoop/common/hadoop-2.6.0/hadoop-2.6.0.tar.gz
-#hbase_url=http://mirror.symnds.com/software/Apache/hbase/0.98.12.1/hbase-0.98.12.1-hadoop2-bin.tar.gz
-hbase_url=http://apache.fayea.com/hbase/stable/hbase-1.0.1-bin.tar.gz
 #hbase_url=https://archive.apache.org/dist/hbase/hbase-1.0.0/hbase-1.0.0-bin.tar.gz
+#hbase_url=http://mirror.symnds.com/software/Apache/hbase/0.98.12.1/hbase-0.98.12.1-hadoop2-bin.tar.gz
+#hadoop_url=http://mirror.sdunix.com/apache/hadoop/common/hadoop-2.7.0/hadoop-2.7.0.tar.gz
 
 #java ssh 
 user=$(whoami)
@@ -58,7 +64,7 @@ then
 		echo "java installed"
 	else
 		echo "installing java, please wait..."
-		brew cask install caskroom/versions/java7 > /dev/null 2>&1
+		brew cask install caskroom/versions/java7 2>&1
 	fi
 	
 	if [ $(wget -V | head -1 | grep Wget | wc -l) -eq 1 ]
@@ -84,7 +90,7 @@ echo "install java and ssh finished, now installing hadoop,downloading may take 
 #hadoop
 mkdir -p ~/fuckhadoop && cd ~/fuckhadoop
 
-if test -f hadoop-2.6.0.tar.gz
+if test -f $hadoop_tar
 then
 	echo "hadoop source file exists, copying..."
 else
@@ -99,8 +105,8 @@ else
 	echo "installing hadoop..."
 fi
 
-tar xvzf hadoop-2.6.0.tar.gz > /dev/null 
-sudo mv hadoop-2.6.0 /usr/local/hadoop
+tar xvzf $hadoop_tar > /dev/null 
+sudo mv $hadoop_version /usr/local/hadoop
 sudo chmod -R 775 /usr/local/hadoop
 if [ $(uname -i | grep Mac | wc -l) -eq 1 ]
 then
@@ -117,7 +123,7 @@ echo
 echo "hadoop finished, now installing hbase..."
 
 #hbase
-if test -f hbase-1.0.1-bin.tar.gz
+if test -f $hbase_tar
 then
 	echo "hbase source file exists, copying..."
 else
@@ -132,10 +138,8 @@ else
 	echo "installing hbase..."
 fi
 
-#tar xvzf hbase-0.98.11-hadoop2-bin.tar.gz > /dev/null 2>&1
-tar xvzf hbase-1.0.1-bin.tar.gz > /dev/null
-sudo mv hbase-1.0.1 /usr/local/hbase
-#sudo mv hbase-0.98.11-hadoop2 /usr/local/hbase
+tar xvzf $hbase_tar > /dev/null
+sudo mv $hbase_version /usr/local/hbase
 sudo chmod -R 755 /usr/local/hbase
 if [ $(uname -i | grep Mac | wc -l) -eq 1 ]
 then
