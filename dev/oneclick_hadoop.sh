@@ -6,8 +6,10 @@
 #########################################################################
 #!/bin/bash
 
+#hadoop_url=http://mirror.sdunix.com/apache/hadoop/common/hadoop-2.7.0/hadoop-2.7.0.tar.gz
 hadoop_url=http://apache.dataguru.cn/hadoop/common/hadoop-2.6.0/hadoop-2.6.0.tar.gz
 hbase_url=http://apache.fayea.com/hbase/stable/hbase-1.0.1-bin.tar.gz
+#hbase_url=https://archive.apache.org/dist/hbase/hbase-1.0.0/hbase-1.0.0-bin.tar.gz
 
 #java ssh 
 user=$(whoami)
@@ -15,14 +17,14 @@ user=$(whoami)
 echo "installing java and ssh..."
 if [ $(grep -c "Ubuntu" /etc/issue) -eq 1 ]
 then
-	sudo apt-get -y update > /dev/null
-	sudo apt-get -y upgrade > /dev/null
+	sudo apt-get -y update  2>&1
+	sudo apt-get -y upgrade  2>&1
 	sudo apt-get -y install default-jdk default-jre ssh openssh-server rsync > /dev/null 2>&1
 elif [ $(grep -c "Centos" /etc/issue) -eq 1 ]
 then
-	yum update -y > /dev/null 2>&1
-	yum upgrade -y > /dev/null 2>&1
-	yum install java-1.7.0-openjdk* rsync openssh-server -y > /dev/null 2>&1
+	yum update -y 2>&1
+	yum upgrade -y 2>&1
+	yum install java-1.7.0-openjdk* rsync openssh-server -y 2>&1
 fi
 
 echo
@@ -35,7 +37,7 @@ if test -f hadoop-2.6.0.tar.gz
 then
 	echo "hadoop source file exists, copying..."
 else
-	wget $hadoop_url > /dev/null 2>&1
+	wget $hadoop_url 2>&1
 fi
 
 if [ -d "/usr/local/hadoop" ]
@@ -62,7 +64,7 @@ if test -f hbase-1.0.1-bin.tar.gz
 then
 	echo "hbase source file exists, copying..."
 else
-	wget $hbase_url > /dev/null 2>&1
+	wget $hbase_url 2>&1
 fi
 
 if [ -d "/usr/local/hbase" ] 
@@ -73,8 +75,10 @@ else
 	echo "installing hbase..."
 fi
 
-tar xvzf hbase-1.0.1-bin.tar.gz > /dev/null
-sudo mv hbase-1.0.1 /usr/local/hbase
+tar xvzf hbase-0.98.11-hadoop2-bin.tar.gz > /dev/null 2>&1
+#tar xvzf hbase-1.0.1-bin.tar.gz > /dev/null
+#sudo mv hbase-1.0.1 /usr/local/hbase
+sudo mv hbase-0.98.11-hadoop2 /usr/local/hbase
 sudo chmod -R 755 /usr/local/hbase
 sudo chown -R $user:$user /usr/local/hbase
 
@@ -147,7 +151,7 @@ sed -i '/<conf/a \\t<property>\n\t\t<name>hbase.rootdir</name>\n\t\t<value>hdfs:
 #hbase-env.sh
 sed -i 's/^export\ JAVA_HOME/#export\ JAVA_HOME/' /usr/local/hbase/conf/hbase-env.sh && sed -i '/export\ JAVA_HOME/a export\ JAVA_HOME=\/usr\/lib\/jvm\/java-7-openjdk-amd64' /usr/local/hbase/conf/hbase-env.sh
 
-sed -i '/export\ HBASE_CLASSPATH/a export\ HBASE_CLASSPATH=\/usr\/local\/hbase\/conf' /usr/local/hbase/conf/hbase-env.sh
+#sed -i '/export\ HBASE_CLASSPATH/a export\ HBASE_CLASSPATH=\/usr\/local\/hbase\/conf' /usr/local/hbase/conf/hbase-env.sh
 
 #use zookeeper
 sed -i '/export\ HBASE_MANAGES_ZK/a export\ HBASE_MANAGES_ZK=true' /usr/local/hbase/conf/hbase-env.sh
@@ -167,7 +171,7 @@ export HADOOP_OPTS="-Djava.library.path-$HADOOP_HOME/lib" \
 export HBASE_HOME=/usr/local/hbase \
 export PATH=$PATH:$HBASE_HOME/bin \
 export JRE_HOME=${JAVA_HOME}/jre \
-export CLASSPATH=.${JAVA_HOME}/lib:${JRE_HOME}/lib:${HADOOP_HOME}/share/hadoop/common/lib:${HBASE_HOME}/lib \
+export CLASSPATH=.${JAVA_HOME}/lib:${JRE_HOME}/lib:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar:${HADOOP_HOME}/share/hadoop/common/lib:${HBASE_HOME}/lib \
 ' /etc/profile
 
 source /etc/profile
@@ -175,7 +179,7 @@ source /etc/profile
 echo "now all work done! enjoy.....^_^"
 echo "try the following 4 commands:"
 echo
-echo "source /etc/profile"
-echo "hdfs namenode -format"
-echo "start-all.sh"
-echo "start-hbase.sh"
+echo "1. source /etc/profile"
+echo "2. hdfs namenode -format"
+echo "3. start-all.sh"
+echo "4. start-hbase.sh"
