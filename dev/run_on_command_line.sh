@@ -48,3 +48,12 @@ done;
 
 #set your command below...
 
+#compile
+javac YourProgram.java
+
+#make jar files
+jar cfm YourProgram.jar YourProgram-manifest.txt YourProgram*.class
+
+#run with jar
+hadoop jar ./YourProgram.jar <argv0> <argv1> ...
+
