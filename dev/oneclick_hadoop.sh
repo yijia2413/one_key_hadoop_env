@@ -19,17 +19,11 @@ sedi="sed -i"
 
 #set your own hadoop and hbase here~
 hadoop_version=hadoop-2.6.0
-hadoop_tar=hadoop-2.6.0.tar.gz
-hadoop_url=http://apache.dataguru.cn/hadoop/common/hadoop-2.6.0/hadoop-2.6.0.tar.gz
 hbase_version=hbase-1.0.1
+hadoop_tar=hadoop-2.6.0.tar.gz
 hbase_tar=hbase-1.0.1-bin.tar.gz
+hadoop_url=http://apache.dataguru.cn/hadoop/common/hadoop-2.6.0/hadoop-2.6.0.tar.gz
 hbase_url=http://apache.fayea.com/hbase/stable/hbase-1.0.1-bin.tar.gz
-
-#if $darwin; then
-#  sedi="/usr/bin/sed -i ''"
-#else
-#  sedi="sed -i"
-#fi
 
 #hbase_url=https://archive.apache.org/dist/hbase/hbase-1.0.0/hbase-1.0.0-bin.tar.gz
 #hbase_url=http://mirror.symnds.com/software/Apache/hbase/0.98.12.1/hbase-0.98.12.1-hadoop2-bin.tar.gz
